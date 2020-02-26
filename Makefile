@@ -9,7 +9,7 @@ all: $(PROGRAM)
 .PHONY: all clean $(PROGRAM)
 
 $(PROGRAM): $(SOURCES)
-	go build -ldflags "-s -w" -o $@ cmd/main.go
+	go build -mod=vendor -ldflags "-s -w" -o ./build/mproxy cmd/main.go
 
 clean:
 	rm -rf $(PROGRAM)
