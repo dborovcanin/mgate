@@ -43,18 +43,30 @@ func New(inbound, outbound net.Conn, handler Handler, logger logger.Logger) *Ses
 func (s *Session) Stream() error {
 	// In parallel read from client, send to broker
 	// and read from broker, send to client.
-	errs := make(chan error, 2)
+	errs := make(chan error)
 
 	go s.stream(up, s.inbound, s.outbound, errs)
 	go s.stream(down, s.outbound, s.inbound, errs)
 
 	// Handle whichever error happens first.
-	// The other routine won't be blocked when writing
-	// to the errors channel because it is buffered.
-	err := <-errs
+	// Close both connections when error occurs.
+	err1 := <-errs
+	if err := s.inbound.Close(); err != nil {
+		s.logger.Warn("Error closing client connection")
+	}
+	if err := s.outbound.Close(); err != nil {
+		s.logger.Warn("Error closing broker connection")
+	}
+	// Drain errors channel waiting for the other
+	// direction to finish. Ignore the error.
+	err2 := <-errs
+	close(errs)
+	if e, ok := err1.(errors.Error); ok {
+		err2 = errors.Wrap(e.Err(), err2)
+	}
 
 	s.handler.Disconnect(&s.Client)
-	return err
+	return errors.Wrap(err1, err2)
 }
 
 func (s *Session) stream(dir direction, r, w net.Conn, errs chan error) {
@@ -111,7 +123,7 @@ func (s *Session) authorize(pkt packets.ControlPacket) error {
 	}
 }
 
-func (s Session) notify(pkt packets.ControlPacket) {
+func (s *Session) notify(pkt packets.ControlPacket) {
 	switch p := pkt.(type) {
 	case *packets.ConnectPacket:
 		s.handler.Connect(&s.Client)
