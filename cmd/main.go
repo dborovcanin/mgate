@@ -13,9 +13,9 @@ import (
 	mflog "github.com/mainflux/mainflux/logger"
 	"github.com/mainflux/mproxy/examples/simple"
 	"github.com/mainflux/mproxy/pkg/mqtt"
-	"github.com/mainflux/mproxy/pkg/session"
+	"github.com/mainflux/mproxy/pkg/mqtt/session"
+	"github.com/mainflux/mproxy/pkg/mqtt/websocket"
 	mptls "github.com/mainflux/mproxy/pkg/tls"
-	"github.com/mainflux/mproxy/pkg/websocket"
 )
 
 const (

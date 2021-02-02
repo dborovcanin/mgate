@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/mainflux/mainflux/logger"
-	"github.com/mainflux/mproxy/pkg/session"
+	"github.com/mainflux/mproxy/pkg/mqtt/session"
 )
 
 var _ session.Handler = (*Handler)(nil)
